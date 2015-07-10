@@ -85,9 +85,6 @@ public class ToXMLInstanceConverter {
      */
     
     public void convertGfx(Object obj, int idx)   {
-		Gson gson = new Gson();
-		ArrayList<String> fpe = new ArrayList<String>();
-
         SigFactory.getInstance().clear();
         AtomFactory.getInstance().clear();
         FieldFactory.getInstance().clear();
@@ -101,21 +98,35 @@ public class ToXMLInstanceConverter {
     		e.printStackTrace();
     	}
 
-    	// Gather paths
-    	for (AlloyField field : FieldFactory.getInstance().getAllFields()) {
-    		String type, label;
-    		type = field.getName();
-    		label = field.getValues().get(1).getName();
-    		gp.addBitPath(Integer.toString(idx), type, label);
-    	}
+    	gp.initGfxPath();
     	
-    	// jSon dump
-    	for (int m=0; m <= gp.getMaxIdx(); m++) {
-    		fpe = gp.getFullPath(m);
-        	if ((fpe !=null) && (fpe.size() != 0)){
-        		gp.fsavePathsJson(fpe);
-        	}
-    	}
+        for (AlloyField field : FieldFactory.getInstance().getAllFields()) {
+        	String relation, fromnode=null, tonode=null;
+        	boolean isnode;
+        	
+        	isnode=true;
+        	relation = field.getName();
+            for (AlloySig sig : field.getTypes()) {
+            	if (!sig.getName().equals("Node"))
+            		isnode=false;
+            }
+            
+            if (isnode) {
+                for (AlloyAtom atom : field.getValues()) {
+                	if (tonode == null)
+                		tonode = atom.getName();
+                	else if (fromnode == null)
+                		fromnode = atom.getName();
+                }
+            }
+            
+
+            if (fromnode != null && tonode != null)
+            	gp.addGfxPath(fromnode, tonode, relation);
+            
+        }
+        
+        gp.saveGfxPathJson(idx);
 
     }
 

@@ -211,13 +211,14 @@ public class TestCradleFSM {
 	protected void startCoverageFSM (Class<?> clazz, ArrayList<MethodPair> tgpairs, int runs) throws 
 	CannotAccessFieldException {
 		HashSet<Coverage> coverage= new HashSet<Coverage>();
-
+		GraphPaths gp= new GraphPaths();
 		Method t, g;
 		IFSMModel fsmObj=null;
 		String snBefore, snAfter;
 		boolean mresult;
 		int totCoverCount=0;
-
+		int idx=0;
+		
 		Random random = new Random();
 		try {
 			fsmObj = (IFSMModel)clazz.newInstance();
@@ -276,37 +277,25 @@ public class TestCradleFSM {
 		}
 
 		calculateCoverageMetrics(coverage, totCoverCount);
-		convertGfx(coverage);
-
-	}
-
-	protected void convertGfx(HashSet<Coverage> coverage) {
-		GraphPaths gp= new GraphPaths();
-		ArrayList<String> fpe = new ArrayList<String>();
-		int idx=0;
-
-		gp.fclear();
-
-		// Gather paths
+		
+		gp.initFSMGfxPath();
+		gp.fInit();
+		
 		for (Coverage cv: coverage) {
 			if (cv.valid) { // consider only valid paths
-				gp.addBitPath(Integer.toString(idx), "from_state", cv.FromState);   		
-				gp.addBitPath(Integer.toString(idx), "to_state", cv.ToState);
-				gp.addBitPath(Integer.toString(idx), "in_transition", cv.Transition);
+				gp.addFSMGfxPath(Integer.toString(idx), "from_state", cv.FromState);   		
+				gp.addFSMGfxPath(Integer.toString(idx), "to_state", cv.ToState);
+				gp.addFSMGfxPath(Integer.toString(idx), "in_transition", cv.Transition);
 
 				idx ++;
 			}
 		}
-
-		// jSon dump
-		for (int m=0; m <= gp.getMaxIdx(); m++) {
-			fpe = gp.getFullPath(m);
-			if ((fpe !=null) && (fpe.size() != 0)){
-				gp.fsavePathsJson(fpe);
-			}
-		}
+		
+		gp.saveFSMGfxPathJson(idx);
+		
 
 	}
+
 
 	protected void calculateCoverageMetrics (HashSet<Coverage>coverage, int totCoverCount) {
 		HashSet<String> hsstate = new HashSet<String>();

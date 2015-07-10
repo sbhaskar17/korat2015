@@ -194,11 +194,12 @@ public class Korat extends JFrame {
 	 */
 
 	private static final long serialVersionUID = 1L;
-	
-    public static String JSON_FILENAME= "GFX.kjson";
-    
+	    
     public static double FSM_RESET_PROBABILITY= 0.0;
-    
+	public static boolean JSONLoaded = false;
+	public static String JSONLoadedDir;
+	public static String JSON_DIR= "viz_json";
+
 	runPanel runpanel;
 	graphPanel graphpanel;
 	textPanel textpanel;
@@ -207,8 +208,9 @@ public class Korat extends JFrame {
 	
 	public GraphPaths gp;
 
+	
 	public Korat() {	
-		this.setTitle("Korat @2015"); // PAR
+		this.setTitle("Korat 2015"); // PAR
 		this.setSize(800, 600);
 
 		// Creates menu bar for JFrame
@@ -270,14 +272,17 @@ public class Korat extends JFrame {
 		ActionListener loadactionlistener = new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {	 
 				JFileChooser fc = new JFileChooser();
-				fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-				fc.setDialogTitle("Choose file to Load Korat JSON from.");
+				fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				fc.setDialogTitle("Choose folder to Load Korat JSON from.");
 				fc.setAcceptAllFileFilterUsed(false);
-			    FileNameExtensionFilter filter = new FileNameExtensionFilter("kjson file(s)", "kjson");
-			    fc.setFileFilter(filter);
+				
 			    if(fc.showOpenDialog(getParent()) == JFileChooser.APPROVE_OPTION) {
+		        	String dir = (fc.getSelectedFile().getAbsolutePath()+"/").replace("\\", "/");
 			    	//System.out.println("ARPTWO: "+fc.getSelectedFile());
-					gp.freadPathsJson(fc.getSelectedFile().toString());
+		        	
+					JSONLoaded = true;
+					JSONLoadedDir = dir;
+					gp.freadPathsJson();
 			    }				
 				
 			}
@@ -293,7 +298,7 @@ public class Korat extends JFrame {
 			    if(fc.showSaveDialog(getParent()) == JFileChooser.APPROVE_OPTION) {
 		        	String dir = (fc.getSelectedFile().getAbsolutePath()+"/").replace("\\", "/");
 			    	//System.out.println("ARPTWO: "+JSON_HOME+":"+JSON_FILEPATH);
-					gp.fsavePathsJson(dir+JSON_FILENAME);
+					gp.fsavePathsJson(dir);
 			    }
 			}
 		}; 
@@ -535,7 +540,7 @@ class runPanel extends JPanel {
 			public void actionPerformed(ActionEvent arg0) {
 				
 				Korat.FSM_RESET_PROBABILITY= jcbfsm.isEnabled() ? Double.parseDouble(jtffsm.getText())/100.0 : 0.0;
-				new GraphPaths().fclear(); 
+				new GraphPaths().fInit(); 
 				String runcmd = rp.getSelection() + " --gui";
 				//System.out.println (runcmd);			
 				(new runKorat(runcmd.split(" "))).runnow();
@@ -655,6 +660,9 @@ class runKorat {
 		TestCradle testCradle = TestCradle.getInstance();
 		ConfigManager config = ConfigManager.getInstance();
 		config.parseCmdLine(args);
+
+		korat.Korat.JSONLoaded = false;
+		korat.Korat.JSONLoadedDir = korat.Korat.JSON_DIR;
 
 		System.out.print("\nStart of Korat Execution for " + config.className
 				+ " (" + config.predicate + ", ");
